@@ -1,6 +1,7 @@
 import { KeyCode } from "../.config/sa.enums.js";
 import { ReduxMenuItem } from "./ReduxMenuItem";
 import { ReduxMenuConfig, ReduxMenuItemConfig } from "./ReduxMenuTypes.js";
+import { ReduxMenuPointer } from "./ReduxMenuPointer";
 
 
 export class ReduxMenu {
@@ -20,6 +21,8 @@ export class ReduxMenu {
     private height: number = 30;
     private pointerX: number;
     private pointerY: number;
+    private pointer: ReduxMenuPointer;
+    private isVisible: boolean = false;
 
 
     constructor(menuItems: ReduxMenuItemConfig[], config?: ReduxMenuConfig, parentMenu: ReduxMenu | null = null) {
@@ -65,10 +68,12 @@ export class ReduxMenu {
             
             this.items.push(menuItem);
         });
+
+        this.pointer = new ReduxMenuPointer();
     }
 
     private navigateBack() {
-        wait(100);
+        wait(10);
         if (this.parentMenu) {
             this.parentMenu.activeSubmenu = null;
         }
@@ -158,8 +163,6 @@ export class ReduxMenu {
             this.activeSubmenu.draw();
             return;
         }
-
-        Text.UseCommands(true);
         
         const menuHeight = this.calculateMenuHeight();
         const menuWidth = 250;
@@ -170,7 +173,7 @@ export class ReduxMenu {
         
         // Draw title at the top of the menu
         Text.SetColor(255, 255, 255, 255);
-        Text.SetScale(0.8, 2.4);
+        Text.SetScale(0.7, 2.4);
         Text.SetWrapX(500.0);
         Text.DisplayFormatted(
             menuX - 100, 
@@ -191,8 +194,6 @@ export class ReduxMenu {
         if (this.totalPages > 1) {
             this.drawPagination(menuY + menuHeight/2 - 30);
         }
-        
-        Text.UseCommands(false);
     }
 
     private drawPagination(paginationY: number) {
@@ -269,5 +270,36 @@ export class ReduxMenu {
         } else {
             item.execute();
         }
+    }
+
+    display() {
+        if (!this.isVisible) {
+            Txd.LoadDictionary("utils");
+            Txd.LoadSprite(1, "mouse");
+            this.isVisible = true;
+        }
+    }
+
+    hide() {
+        if (this.isVisible) {
+            Txd.Remove();
+            this.isVisible = false;
+        }
+    }
+
+    process() {
+        if (!this.isVisible) return;
+
+        Text.UseCommands(true);
+        const pointerPos = this.pointer.getPosition();
+        this.pointer.update();
+        this.update(pointerPos.x, pointerPos.y);
+        this.draw();
+        this.pointer.draw();
+        Text.UseCommands(false);
+    }
+
+    getIsVisible() {
+        return this.isVisible;
     }
 }

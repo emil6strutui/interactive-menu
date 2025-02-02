@@ -1,3 +1,5 @@
+import { DrawEvent } from "../.config/sa.enums.js";
+
 export class ReduxMenuPointer {
     private POINTER_SPEED = 1;
     private SCREEN_WIDTH = 640;
@@ -25,7 +27,8 @@ export class ReduxMenuPointer {
     }
 
     draw() {
-        Hud.DrawRect(this.pointerX, this.pointerY, 5, 5, 255, 0, 0, 255);
+
+        Hud.DrawSprite(1, this.pointerX, this.pointerY, 10, 10, 180, 180, 180, 255);
     }
 
     getPosition(): { x: number, y: number } {

@@ -1,0 +1,31 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Copy Interactive Menu",
+            "type": "shell",
+            "windows": {
+                "command": "powershell -Command \"Remove-Item -LiteralPath '..\\interactive-menu[mem]' -Force -Recurse -ErrorAction SilentlyContinue; Copy-Item -LiteralPath '.\\interactive-menu[mem]' -Destination '..\\' -Recurse -Force\""
+            },
+            "linux": {
+                "command": "cp",
+                "args": ["-r", "./interactive-menu\\[mem\\]/*", "../interactive-menu\\[mem\\]/"]
+            },
+
+            "osx": {
+                "command": "cp",
+                "args": ["-r", "./interactive-menu\\[mem\\]/*", "../interactive-menu\\[mem\\]/"]
+            },
+
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

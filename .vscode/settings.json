@@ -1,0 +1,11 @@
+{
+    "files.autoSave": "afterDelay",
+    "emeraldwalk.runonsave": {
+        "commands": [
+            {
+                "match": "interactive-menu\\[mem\\]",
+                "cmd": "powershell -Command \"Remove-Item -LiteralPath '..\\interactive-menu[mem]' -Force -Recurse -ErrorAction SilentlyContinue; Copy-Item -LiteralPath '.\\interactive-menu[mem]' -Destination '..\\' -Recurse -Force\""
+            }
+        ]
+    }
+} 
