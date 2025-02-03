@@ -1,6 +1,6 @@
 import { ReduxMenuAction, ReduxMenuItemConfig } from "./ReduxMenuTypes";
 import { ReduxMenu } from "./ReduxMenu";
-import { Align, DrawEvent, Font } from "../.config/sa.enums.js";
+import { DrawEvent, Font } from "../.config/sa.enums.js";
 
 export class ReduxMenuItem {
     public submenu: ReduxMenu | null = null;
@@ -32,45 +32,35 @@ export class ReduxMenuItem {
 
     isHovered(pointerX: number, pointerY: number): boolean {
         return pointerX >= this.x && 
-               pointerX <= this.x + this.width && 
+               pointerX <= this.x + this.width + 8 && 
                pointerY >= this.y && 
-               pointerY <= this.y + this.height;
+               pointerY <= this.y + this.height + 7;
     }
 
     draw(isHovered: boolean) {
 
-        Hud.DrawRect(
-            this.x + this.width / 2, 
-            this.y + this.height / 2,
-            this.width,
-            this.height,
-            0,
-            0,
-            0,
-            isHovered ? 180 : 120
-        );
+        Txd.DrawTexturePlus(0, DrawEvent.AfterDrawing, this.x + this.width / 2, this.y + this.height / 2, this.width, this.height, 0.0, 0.0, false, 0, 0, 0, 0, 0, isHovered ? 180 : 120);
 
         
         const displayText = this.getDisplayText();
         const textLength = displayText.length;
-        const scale = Math.max(0.5, Math.min(0.7, 1.2 - (textLength * 0.05)));
+        const scale = Math.max(0.4, Math.min(0.6, 1.2 - (textLength * 0.05)));
         
         Text.SetColor(255, 255, 255, isHovered ? 255 : 230);
-        const currentYScale = 3.3 * scale;
-        Text.SetScale(scale * 1, currentYScale);
-        Text.SetWrapX(500.0);
+        const sizeX = scale * 1;
+        const sizeY = scale * 2;
         
-        const maxYScale = 3.3 * 0.7;
-        const scaleFactor = currentYScale / maxYScale;
+        const maxYScale = 2 * 0.7;
+        const scaleFactor = sizeY / maxYScale;
         const baseOffset = 2;
         const verticalOffset = baseOffset + (this.height - (this.height * scaleFactor)) / 2;
         
-        Text.DisplayFormatted(this.x + 10, this.y + verticalOffset, displayText);
+        Text.DrawString(displayText, DrawEvent.BeforeHud, this.x + 10, this.y + verticalOffset, sizeX, sizeY, true, Font.Subtitles);
         
     }
 
     private getDisplayText(): string {
-        const maxLength = 22;
+        const maxLength = 30;
         let finalText = this.text;
         
         if (Text.GetLength(this.text) > maxLength) {

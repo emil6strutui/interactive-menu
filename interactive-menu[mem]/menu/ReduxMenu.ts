@@ -1,7 +1,8 @@
-import { KeyCode } from "../.config/sa.enums.js";
+import { DrawEvent, Font, KeyCode, Align } from "../.config/sa.enums.js";
 import { ReduxMenuItem } from "./ReduxMenuItem";
 import { ReduxMenuConfig, ReduxMenuItemConfig } from "./ReduxMenuTypes.js";
 import { ReduxMenuPointer } from "./ReduxMenuPointer";
+import { setTimeout } from "../utils/setTimeout";
 
 
 export class ReduxMenu {
@@ -23,6 +24,9 @@ export class ReduxMenu {
     private pointerY: number;
     private pointer: ReduxMenuPointer;
     private isVisible: boolean = false;
+    private readonly CLOSE_BUTTON_SIZE = 20;
+    private readonly CLOSE_BUTTON_PADDING = 10;
+    private onCloseCallback: (() => void) | null = null;
 
 
     constructor(menuItems: ReduxMenuItemConfig[], config?: ReduxMenuConfig, parentMenu: ReduxMenu | null = null) {
@@ -158,6 +162,89 @@ export class ReduxMenu {
         };
     }
 
+    private drawCloseButton() {
+        const menuHeight = this.calculateMenuHeight();
+        const { x: menuX, y: menuY } = this.getBoundedMenuPosition(menuHeight);
+        
+        const closeX = menuX + (this.width / 2) - this.CLOSE_BUTTON_PADDING;
+        const closeY = menuY - (menuHeight / 2) + this.CLOSE_BUTTON_PADDING;
+        
+        // Check for hover and click
+        const isCloseHovered = this.isPointInRect(
+            this.pointerX,
+            this.pointerY,
+            closeX,
+            closeY,
+            this.CLOSE_BUTTON_SIZE,
+            this.CLOSE_BUTTON_SIZE
+        );
+
+        
+        Txd.DrawTexturePlus(
+            0,
+            DrawEvent.BeforeHud,
+            closeX + this.CLOSE_BUTTON_SIZE/2,
+            closeY + this.CLOSE_BUTTON_SIZE/2,
+            this.CLOSE_BUTTON_SIZE,
+            this.CLOSE_BUTTON_SIZE,
+            0,
+            0,
+            true,
+            0,
+            0,
+            0,
+            0,
+            0,
+            isCloseHovered ? 255 : 180
+        );
+
+
+        
+        Txd.DrawTexturePlus(
+            0,
+            DrawEvent.BeforeHud,
+            closeX + this.CLOSE_BUTTON_SIZE/2,
+            closeY + this.CLOSE_BUTTON_SIZE/2,
+            12,
+            2,
+            45,
+            0,
+            true,
+            0,
+            0,
+            255,
+            255,
+            255,
+            isCloseHovered ? 255 : 180
+        );
+
+        Txd.DrawTexturePlus(
+            0,
+            DrawEvent.BeforeHud,
+            closeX + this.CLOSE_BUTTON_SIZE/2,
+            closeY + this.CLOSE_BUTTON_SIZE/2,
+            12,
+            2,
+            -45,
+            0,
+            true,
+            0,
+            0,
+            255,
+            255,
+            255,
+            isCloseHovered ? 255 : 180
+        );
+
+        if (isCloseHovered && Pad.IsKeyJustPressed(KeyCode.LeftButton)) {
+            const currentTime = Date.now();
+            if (currentTime - this.lastClickTime >= this.clickCooldown) {
+                this.hide();
+                this.lastClickTime = currentTime;
+            }
+        }
+    }
+
     draw() {
         if (this.activeSubmenu) {
             this.activeSubmenu.draw();
@@ -169,17 +256,10 @@ export class ReduxMenu {
         const { x: menuX, y: menuY } = this.getBoundedMenuPosition(menuHeight);
         
         // Draw menu background
-        Hud.DrawRect(menuX, menuY, menuWidth, menuHeight, 100, 149, 237, 100);
-        
-        // Draw title at the top of the menu
-        Text.SetColor(255, 255, 255, 255);
-        Text.SetScale(0.7, 2.4);
-        Text.SetWrapX(500.0);
-        Text.DisplayFormatted(
-            menuX - 100, 
-            menuY - menuHeight/2 + 20,
-            this.title
-        );
+        Txd.DrawTexturePlus(0, DrawEvent.BeforeDrawing, menuX, menuY, menuWidth, menuHeight, 0.0, 0.0, false, 0, 0, 100, 149, 237, 100);
+
+
+        Text.DrawString(this.title, DrawEvent.BeforeHud, menuX - 100, menuY - menuHeight / 2 + 20, 0.7, 1.6, true, Font.Subtitles);
         
         // Update item positions based on bounded menu position
         const startIdx = this.currentPage * this.itemsPerPage;
@@ -194,6 +274,9 @@ export class ReduxMenu {
         if (this.totalPages > 1) {
             this.drawPagination(menuY + menuHeight/2 - 30);
         }
+
+        this.drawCloseButton();
+
     }
 
     private drawPagination(paginationY: number) {
@@ -201,22 +284,46 @@ export class ReduxMenu {
             return;
         }
 
-        const prevX = this.x - 120;
+        const prevX = this.x - 130;
         const nextX = this.x + 60;
-        const centerX = this.x;
+        const centerX = this.x - 25;
         
-        Text.SetColor(255, 255, 255, 255);
-        Text.SetScale(0.3, 0.8);
-        Text.DisplayFormatted(centerX, paginationY, `Page ${this.currentPage + 1}/${this.totalPages}`);
+        Text.DrawString(`Page ${this.currentPage + 1}/${this.totalPages}`, DrawEvent.BeforeHud, centerX, paginationY + 2, 0.4, 0.8, true, Font.Subtitles)
         
         const currentTime = Date.now();
         const canClick = currentTime - this.lastClickTime >= this.clickCooldown;
 
         if (this.currentPage > 0) {
-            const isPrevHovered = this.isPointInRect(this.pointerX, this.pointerY, prevX, paginationY - 5, 60, 20);
-            Text.SetColor(255, 255, 255, isPrevHovered ? 255 : 180);
-            Text.SetWrapX(500.0);
-            Text.DisplayFormatted(prevX, paginationY, "< Prev");
+            const isPrevHovered = this.isPointInRect(this.pointerX, this.pointerY, prevX + 10, paginationY + 5, 60, 20);
+            Text.DrawStringExt(
+                "< Prev", // Text
+                DrawEvent.BeforeHud, // DrawEvent
+                prevX + 10, // X
+                paginationY, // Y
+                0.5, // SizeX
+                1.0, // SizeY
+                true, // FixAr
+                Font.Subtitles, // Font
+                true, // Prop
+                Align.Left, 
+                500.0, // Wrap
+                false, // Justify
+                255, // Red
+                255, // Green
+                255, // Blue
+                isPrevHovered ? 255 : 220, // Alpha
+                1, // Outline
+                0, // Shadow
+                0, // DropRed
+                0, // DropGreen
+                0, // DropBlue
+                255, // DropAlpha
+                false, // Background
+                0, // BackRed
+                0, // BackGreen
+                0, // BackBlue
+                0, // BackAlpha
+            )
             
 
             if (isPrevHovered && Pad.IsKeyJustPressed(KeyCode.LeftButton) && canClick) {
@@ -227,10 +334,36 @@ export class ReduxMenu {
         }
 
         if (this.currentPage < this.totalPages - 1) {
-            const isNextHovered = this.isPointInRect(this.pointerX, this.pointerY, nextX, paginationY - 5, 60, 20);
-            Text.SetColor(255, 255, 255, isNextHovered ? 255 : 180);
-            Text.SetWrapX(500.0);
-            Text.DisplayFormatted(nextX, paginationY, "Next >");
+            const isNextHovered = this.isPointInRect(this.pointerX, this.pointerY, nextX + 10, paginationY + 5, 60, 20);
+            Text.DrawStringExt(
+                "Next >", // Text
+                DrawEvent.BeforeHud, // DrawEvent
+                nextX + 10, // X
+                paginationY, // Y
+                0.5, // SizeX
+                1.0, // SizeY
+                true, // FixAr
+                Font.Subtitles, // Font
+                true, // Prop
+                Align.Left, 
+                500.0, // Wrap
+                false, // Justify
+                255, // Red
+                255, // Green
+                255, // Blue
+                isNextHovered ? 255 : 220, // Alpha
+                1, // Outline
+                0, // Shadow
+                0, // DropRed
+                0, // DropGreen
+                0, // DropBlue
+                255, // DropAlpha
+                false, // Background
+                0, // BackRed
+                0, // BackGreen
+                0, // BackBlue
+                0, // BackAlpha
+            )
             
             if (isNextHovered && Pad.IsKeyJustPressed(KeyCode.LeftButton) && canClick) {
                 this.currentPage++;
@@ -266,6 +399,8 @@ export class ReduxMenu {
             }
             
             this.activeSubmenu = submenu;
+            this.activeSubmenu.pointerX = this.pointerX;
+            this.activeSubmenu.pointerY = this.pointerY;
             return;
         } else {
             item.execute();
@@ -273,33 +408,53 @@ export class ReduxMenu {
     }
 
     display() {
-        if (!this.isVisible) {
-            Txd.LoadDictionary("utils");
-            Txd.LoadSprite(1, "mouse");
-            this.isVisible = true;
+        let rootMenu: ReduxMenu = this;
+        while (rootMenu.parentMenu) {
+            rootMenu = rootMenu.parentMenu;
+        }
+
+        if (!rootMenu.isVisible) {
+            rootMenu.isVisible = true;
         }
     }
 
     hide() {
-        if (this.isVisible) {
-            Txd.Remove();
-            this.isVisible = false;
+        if (this.getIsVisible()) {
+            let rootMenu: ReduxMenu = this;
+            while (rootMenu.parentMenu) {
+                rootMenu = rootMenu.parentMenu;
+            }
+            
+            rootMenu.activeSubmenu = null;
+            rootMenu.isVisible = false;
+            
+            wait(100);
+            rootMenu.onCloseCallback?.();
         }
     }
 
     process() {
-        if (!this.isVisible) return;
+        if (!this.getIsVisible()) return;
 
         Text.UseCommands(true);
         const pointerPos = this.pointer.getPosition();
         this.pointer.update();
         this.update(pointerPos.x, pointerPos.y);
-        this.draw();
         this.pointer.draw();
+        this.draw();
         Text.UseCommands(false);
     }
 
-    getIsVisible() {
-        return this.isVisible;
+    getIsVisible(): boolean {
+        // If this is a submenu, check the root menu's visibility
+        let rootMenu: ReduxMenu = this;
+        while (rootMenu.parentMenu) {
+            rootMenu = rootMenu.parentMenu;
+        }
+        return rootMenu.isVisible;
+    }
+
+    onClose(callback: () => void) {
+        this.onCloseCallback = callback;
     }
 }

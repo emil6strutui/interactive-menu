@@ -6,12 +6,52 @@ export class ReduxMenuPointer {
     private SCREEN_HEIGHT = 448;
     private MOUSE_MEMORY_BASE = 0xB73418;
     
+    // Memory addresses for texture handling
+    private readonly CTXD_STORE_ADD_TXD_SLOT = 0x731C80;
+    private readonly CTXD_STORE_LOAD_TXD = 0x7320B0;
+    private readonly CTXD_STORE_PUSH_CURRENT_TXD = 0x7316A0;
+    private readonly CTXD_STORE_FIND_TXD_SLOT = 0x731850;
+    private readonly CTXD_STORE_SET_CURRENT_TXD = 0x7319C0;
+    private readonly RW_TEXTURE_READ = 0x7F3AC0;
+    private readonly CTXD_STORE_POP_CURRENT_TXD = 0x7316B0;
+    
     private pointerX: number;
     private pointerY: number;
+    private pointerTexture: number | null = null;
 
     constructor() {
         this.pointerX = this.SCREEN_WIDTH / 2;
         this.pointerY = this.SCREEN_HEIGHT / 2;
+        this.initializePointerTexture();
+    }
+
+    private initializePointerTexture() {
+
+        const stringBuffer = Memory.Allocate(256);
+        const stringBuffer2 = Memory.Allocate(256);
+        Memory.WriteUtf8(stringBuffer, "mouse\0", false);
+
+        const txdSlot = Memory.CallFunctionReturn(this.CTXD_STORE_ADD_TXD_SLOT, 1, 1, stringBuffer);
+
+        Memory.WriteUtf8(stringBuffer, "MODELS\\FRONTEN_PC.TXD\0", false);
+
+        Memory.CallFunctionReturn(this.CTXD_STORE_LOAD_TXD, 2, 2, txdSlot, stringBuffer);
+        
+        Memory.WriteUtf8(stringBuffer, "mouse\0", false);
+        Memory.CallFunction(this.CTXD_STORE_PUSH_CURRENT_TXD, 0, 0);
+        
+        const foundSlot = Memory.CallFunctionReturn(this.CTXD_STORE_FIND_TXD_SLOT, 1, 1, stringBuffer);
+
+        Memory.CallFunction(this.CTXD_STORE_SET_CURRENT_TXD, 1, 1, foundSlot);
+
+        Memory.WriteUtf8(stringBuffer2, "mousea\0", false);
+        this.pointerTexture = Memory.CallFunctionReturn(this.RW_TEXTURE_READ, 2, 2, stringBuffer, stringBuffer2);
+        
+        
+        Memory.CallFunction(this.CTXD_STORE_POP_CURRENT_TXD, 0, 0);
+
+        Memory.Free(stringBuffer);
+        Memory.Free(stringBuffer2);
     }
 
     update() {
@@ -27,8 +67,25 @@ export class ReduxMenuPointer {
     }
 
     draw() {
-
-        Hud.DrawSprite(1, this.pointerX, this.pointerY, 10, 10, 180, 180, 180, 255);
+        if (this.pointerTexture) {
+            Txd.DrawTexturePlus(
+                this.pointerTexture,
+                DrawEvent.AfterRadarOverlay,
+                this.pointerX,
+                this.pointerY,
+                -16.0,
+                16.0,
+                0.0,
+                -100.0,
+                true,
+                0,
+                0,
+                255,
+                255,
+                255,
+                255
+            );
+        }
     }
 
     getPosition(): { x: number, y: number } {

@@ -36,6 +36,86 @@ const mainMenu = new ReduxMenu([
                     Streaming.MarkModelAsNoLongerNeeded(WeaponModel.M4);
                 }
             },
+            {
+                text: "Give AK47",
+                action: () => {
+                    Streaming.RequestModel(WeaponModel.AK47);
+                    Streaming.LoadAllModelsNow();
+                    player.getChar().giveWeapon(WeaponType.Ak47, 100);
+                    Streaming.MarkModelAsNoLongerNeeded(WeaponModel.AK47);
+
+                }
+            },
+            {
+                text: "Give M4",
+
+                action: () => {
+                    Streaming.RequestModel(WeaponModel.M4);
+                    Streaming.LoadAllModelsNow();
+                    player.getChar().giveWeapon(WeaponType.M4, 100);
+                    Streaming.MarkModelAsNoLongerNeeded(WeaponModel.M4);
+                }
+            },
+            {
+                text: "Give AK47",
+                action: () => {
+                    Streaming.RequestModel(WeaponModel.AK47);
+                    Streaming.LoadAllModelsNow();
+                    player.getChar().giveWeapon(WeaponType.Ak47, 100);
+                    Streaming.MarkModelAsNoLongerNeeded(WeaponModel.AK47);
+
+                }
+            },
+            {
+                text: "Give M4",
+
+                action: () => {
+                    Streaming.RequestModel(WeaponModel.M4);
+                    Streaming.LoadAllModelsNow();
+                    player.getChar().giveWeapon(WeaponType.M4, 100);
+                    Streaming.MarkModelAsNoLongerNeeded(WeaponModel.M4);
+                }
+            },
+            {
+                text: "Give AK47",
+                action: () => {
+                    Streaming.RequestModel(WeaponModel.AK47);
+                    Streaming.LoadAllModelsNow();
+                    player.getChar().giveWeapon(WeaponType.Ak47, 100);
+                    Streaming.MarkModelAsNoLongerNeeded(WeaponModel.AK47);
+
+                }
+            },
+            {
+                text: "Give M4",
+
+                action: () => {
+                    Streaming.RequestModel(WeaponModel.M4);
+                    Streaming.LoadAllModelsNow();
+                    player.getChar().giveWeapon(WeaponType.M4, 100);
+                    Streaming.MarkModelAsNoLongerNeeded(WeaponModel.M4);
+                }
+            },
+            {
+                text: "Give AK47",
+                action: () => {
+                    Streaming.RequestModel(WeaponModel.AK47);
+                    Streaming.LoadAllModelsNow();
+                    player.getChar().giveWeapon(WeaponType.Ak47, 100);
+                    Streaming.MarkModelAsNoLongerNeeded(WeaponModel.AK47);
+
+                }
+            },
+            {
+                text: "Give M4",
+
+                action: () => {
+                    Streaming.RequestModel(WeaponModel.M4);
+                    Streaming.LoadAllModelsNow();
+                    player.getChar().giveWeapon(WeaponType.M4, 100);
+                    Streaming.MarkModelAsNoLongerNeeded(WeaponModel.M4);
+                }
+            },
         ]
     },
 ], {
@@ -45,16 +125,20 @@ const mainMenu = new ReduxMenu([
     title: "Main Menu",
 });
 
+
+mainMenu.onClose(() => {
+    player.setControl(true);
+});
+
 while(true) {
     wait(0);
-
+    
     if(Pad.IsKeyJustPressed(KeyCode.M)) {
         if(!mainMenu.getIsVisible()) {
             mainMenu.display();
             player.setControl(false);
         } else {
             mainMenu.hide();
-            player.setControl(true);
         }
     }
 
