@@ -15,7 +15,7 @@ const mainMenuSystem = new MenuSystem([
         text: "Weapons menu",
         submenu: [
             {
-                text: "Give AK47",
+                text: "1. Give AK47",
                 action: () => {
                     Streaming.RequestModel(WeaponModel.AK47);
                     Streaming.LoadAllModelsNow();
@@ -24,84 +24,204 @@ const mainMenuSystem = new MenuSystem([
                 }
             },
             {
-                text: "Give M4",
+                text: "2. Give M4",
                 action: () => {
                     Streaming.RequestModel(WeaponModel.M4);
                     Streaming.LoadAllModelsNow();
                     player.getChar().giveWeapon(WeaponType.M4, 100);
                     Streaming.MarkModelAsNoLongerNeeded(WeaponModel.M4);
+
                 }
             },
             {
-                text: "Give AK47",
+                text: "3. Give AK47",
+                action: () => {
+                    Streaming.RequestModel(WeaponModel.AK47);
+                    Streaming.LoadAllModelsNow();
+                    player.getChar().giveWeapon(WeaponType.Ak47, 100);
+                    Streaming.MarkModelAsNoLongerNeeded(WeaponModel.AK47);
+
+                }
+            },
+            {
+                text: "4. Give M4",
+                action: () => {
+                    Streaming.RequestModel(WeaponModel.M4);
+                    Streaming.LoadAllModelsNow();
+                    player.getChar().giveWeapon(WeaponType.M4, 100);
+                    Streaming.MarkModelAsNoLongerNeeded(WeaponModel.M4);
+
+                }
+            },
+            {
+                text: "5. Give AK47",
                 action: () => {
                     Streaming.RequestModel(WeaponModel.AK47);
                     Streaming.LoadAllModelsNow();
                     player.getChar().giveWeapon(WeaponType.Ak47, 100);
                     Streaming.MarkModelAsNoLongerNeeded(WeaponModel.AK47);
                 }
+
             },
             {
-                text: "Give M4",
+                text: "6. Give M4",
                 action: () => {
                     Streaming.RequestModel(WeaponModel.M4);
                     Streaming.LoadAllModelsNow();
                     player.getChar().giveWeapon(WeaponType.M4, 100);
                     Streaming.MarkModelAsNoLongerNeeded(WeaponModel.M4);
+
+
                 }
             },
             {
-                text: "Give AK47",
+                text: "7. Give AK47",
                 action: () => {
                     Streaming.RequestModel(WeaponModel.AK47);
                     Streaming.LoadAllModelsNow();
                     player.getChar().giveWeapon(WeaponType.Ak47, 100);
                     Streaming.MarkModelAsNoLongerNeeded(WeaponModel.AK47);
+
                 }
             },
             {
-                text: "Give M4",
+                text: "8. Give M4",
                 action: () => {
                     Streaming.RequestModel(WeaponModel.M4);
                     Streaming.LoadAllModelsNow();
                     player.getChar().giveWeapon(WeaponType.M4, 100);
                     Streaming.MarkModelAsNoLongerNeeded(WeaponModel.M4);
+
                 }
             },
             {
-                text: "Give AK47",
+                text: "9. Give AK47",
                 action: () => {
                     Streaming.RequestModel(WeaponModel.AK47);
                     Streaming.LoadAllModelsNow();
                     player.getChar().giveWeapon(WeaponType.Ak47, 100);
                     Streaming.MarkModelAsNoLongerNeeded(WeaponModel.AK47);
+
                 }
             },
             {
-                text: "Give M4",
+                text: "10. Give M4",
                 action: () => {
                     Streaming.RequestModel(WeaponModel.M4);
                     Streaming.LoadAllModelsNow();
                     player.getChar().giveWeapon(WeaponType.M4, 100);
                     Streaming.MarkModelAsNoLongerNeeded(WeaponModel.M4);
+
                 }
             },
             {
-                text: "Give AK47",
+                text: "11. Give AK47",
                 action: () => {
                     Streaming.RequestModel(WeaponModel.AK47);
                     Streaming.LoadAllModelsNow();
                     player.getChar().giveWeapon(WeaponType.Ak47, 100);
                     Streaming.MarkModelAsNoLongerNeeded(WeaponModel.AK47);
+
                 }
             },
             {
-                text: "Give M4",
+                text: "12. Give M4",
                 action: () => {
                     Streaming.RequestModel(WeaponModel.M4);
                     Streaming.LoadAllModelsNow();
                     player.getChar().giveWeapon(WeaponType.M4, 100);
                     Streaming.MarkModelAsNoLongerNeeded(WeaponModel.M4);
+
+
+                }
+            },
+            {
+                text: "13. Give AK47",
+                action: () => {
+                    Streaming.RequestModel(WeaponModel.AK47);
+                    Streaming.LoadAllModelsNow();
+                    player.getChar().giveWeapon(WeaponType.Ak47, 100);
+                    Streaming.MarkModelAsNoLongerNeeded(WeaponModel.AK47);
+
+
+                }
+            },
+            {
+                text: "14. Give M4",
+                action: () => {
+                    Streaming.RequestModel(WeaponModel.M4);
+                    Streaming.LoadAllModelsNow();
+                    player.getChar().giveWeapon(WeaponType.M4, 100);
+                    Streaming.MarkModelAsNoLongerNeeded(WeaponModel.M4);
+
+
+                }
+            },
+            {
+                text: "15. Give AK47",
+                action: () => {
+                    Streaming.RequestModel(WeaponModel.AK47);
+                    Streaming.LoadAllModelsNow();
+                    player.getChar().giveWeapon(WeaponType.Ak47, 100);
+                    Streaming.MarkModelAsNoLongerNeeded(WeaponModel.AK47);
+
+                }
+
+            },
+            {
+                text: "16. Give M4",
+                action: () => {
+                    Streaming.RequestModel(WeaponModel.M4);
+                    Streaming.LoadAllModelsNow();
+                    player.getChar().giveWeapon(WeaponType.M4, 100);
+                    Streaming.MarkModelAsNoLongerNeeded(WeaponModel.M4);
+
+
+
+                }
+            },
+            {
+                text: "17. Give AK47",
+                action: () => {
+                    Streaming.RequestModel(WeaponModel.AK47);
+                    Streaming.LoadAllModelsNow();
+                    player.getChar().giveWeapon(WeaponType.Ak47, 100);
+                    Streaming.MarkModelAsNoLongerNeeded(WeaponModel.AK47);
+
+
+                }
+            },
+            {
+                text: "18. Give M4",
+                action: () => {
+                    Streaming.RequestModel(WeaponModel.M4);
+                    Streaming.LoadAllModelsNow();
+                    player.getChar().giveWeapon(WeaponType.M4, 100);
+                    Streaming.MarkModelAsNoLongerNeeded(WeaponModel.M4);
+
+
+                }
+            },
+            {
+                text: "19. Give AK47",
+                action: () => {
+                    Streaming.RequestModel(WeaponModel.AK47);
+                    Streaming.LoadAllModelsNow();
+                    player.getChar().giveWeapon(WeaponType.Ak47, 100);
+                    Streaming.MarkModelAsNoLongerNeeded(WeaponModel.AK47);
+
+
+
+                }
+            },
+            {
+                text: "20. Give M4",
+                action: () => {
+                    Streaming.RequestModel(WeaponModel.M4);
+                    Streaming.LoadAllModelsNow();
+                    player.getChar().giveWeapon(WeaponType.M4, 100);
+                    Streaming.MarkModelAsNoLongerNeeded(WeaponModel.M4);
+
                 }
             },
         ]
@@ -109,7 +229,8 @@ const mainMenuSystem = new MenuSystem([
 ], {
     x: 300,
     y: 200,
-    itemsPerPage: 5,
+    itemsPerPage: 12,
+    scrollBar: false,
     title: "Main Menu",
 });
 
