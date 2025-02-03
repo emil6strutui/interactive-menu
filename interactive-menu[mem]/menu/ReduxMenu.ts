@@ -188,7 +188,7 @@ export class ReduxMenu {
         // Draw a simple close button using two crossed lines.
         Txd.DrawTexturePlus(
             0,
-            DrawEvent.BeforeHud,
+            DrawEvent.AfterHud,
             closeX + this.CLOSE_BUTTON_SIZE / 2,
             closeY + this.CLOSE_BUTTON_SIZE / 2,
             this.CLOSE_BUTTON_SIZE,
@@ -203,7 +203,7 @@ export class ReduxMenu {
         );
         Txd.DrawTexturePlus(
             0,
-            DrawEvent.BeforeHud,
+            DrawEvent.AfterHud,
             closeX + this.CLOSE_BUTTON_SIZE / 2,
             closeY + this.CLOSE_BUTTON_SIZE / 2,
             12,
@@ -218,7 +218,7 @@ export class ReduxMenu {
         );
         Txd.DrawTexturePlus(
             0,
-            DrawEvent.BeforeHud,
+            DrawEvent.AfterHud,
             closeX + this.CLOSE_BUTTON_SIZE / 2,
             closeY + this.CLOSE_BUTTON_SIZE / 2,
             12,
@@ -247,7 +247,7 @@ export class ReduxMenu {
         // Draw menu background
         Txd.DrawTexturePlus(
             0, 
-            DrawEvent.BeforeDrawing, 
+            DrawEvent.AfterHud, 
             menuX, menuY + 8, 
             ReduxMenu.MENU_WIDTH, menuHeight, 
             0.0, 
@@ -256,7 +256,7 @@ export class ReduxMenu {
             0, 0, 
             100, 149, 237, 100);
         // Draw title
-        Text.DrawString(this.title, DrawEvent.BeforeHud, menuX - 100, menuY - menuHeight / 2 + 20, 0.7, 1.6, true, Font.Subtitles);
+        Text.DrawString(this.title, DrawEvent.AfterHud, menuX - 100, menuY - menuHeight / 2 + 20, 0.7, 1.6, true, Font.Subtitles);
         
         // Update item positions based on bounded menu position
         const startIdx = this.scrollMode ? this.currentPage : this.currentPage * this.itemsPerPage;
@@ -288,7 +288,7 @@ export class ReduxMenu {
         
         Text.DrawString(
             `Page ${this.currentPage + 1}/${this.totalPages}`, 
-            DrawEvent.BeforeHud, 
+            DrawEvent.AfterHud, 
             centerX, paginationY + 2, 
             0.4, 0.8, 
             true, 
@@ -309,7 +309,7 @@ export class ReduxMenu {
 
             Text.DrawStringExt(
                 "< Prev", // Text
-                DrawEvent.BeforeHud, // DrawEvent
+                DrawEvent.AfterHud, // DrawEvent
                 prevX + 10, // X
                 paginationY, // Y
                 0.5, // SizeX
@@ -356,7 +356,7 @@ export class ReduxMenu {
                 );
             Text.DrawStringExt(
                 "Next >", // Text
-                DrawEvent.BeforeHud, // DrawEvent
+                DrawEvent.AfterHud, // DrawEvent
                 nextX + 10, // X
                 paginationY, // Y
                 0.5, // SizeX
@@ -427,7 +427,7 @@ export class ReduxMenu {
         const trackCenterY = trackY + trackHeight / 2;
         Txd.DrawTexturePlus(
             0,
-            DrawEvent.BeforeHud,
+            DrawEvent.AfterHud,
             trackCenterX,
             trackCenterY,
             trackWidth,
@@ -453,7 +453,7 @@ export class ReduxMenu {
             const isHandleHovered = this.isPointInRect(pointerX, pointerY, trackX, handleY, trackWidth, handleHeight);
             Txd.DrawTexturePlus(
                 0,
-                DrawEvent.BeforeHud,
+                DrawEvent.AfterHud,
                 handleCenterX,
                 handleCenterY,
                 trackWidth,

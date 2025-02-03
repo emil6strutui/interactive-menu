@@ -229,8 +229,8 @@ const mainMenuSystem = new MenuSystem([
 ], {
     x: 300,
     y: 200,
-    itemsPerPage: 12,
-    scrollBar: false,
+    itemsPerPage: 7,
+    scrollBar: true,
     title: "Main Menu",
 });
 

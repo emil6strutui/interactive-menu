@@ -70,7 +70,7 @@ export class ReduxMenuPointer {
         if (this.pointerTexture) {
             Txd.DrawTexturePlus(
                 this.pointerTexture,
-                DrawEvent.AfterRadarOverlay,
+                DrawEvent.AfterFade,
                 this.pointerX,
                 this.pointerY,
                 -16.0,
