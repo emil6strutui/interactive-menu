@@ -94,4 +94,9 @@ export class ReduxMenuPointer {
             y: this.pointerY
         };
     }
+
+    reset() {
+        this.pointerX = this.SCREEN_WIDTH / 2;
+        this.pointerY = this.SCREEN_HEIGHT / 2;
+    }
 } 

@@ -3,7 +3,7 @@ import { ReduxMenu } from "./ReduxMenu";
 import { DrawEvent, Font } from "../.config/sa.enums.js";
 
 export class ReduxMenuItem {
-    public submenu: ReduxMenu | null = null;
+    private submenu: ReduxMenu | null = null;
     private action: ReduxMenuAction | null = null;
 
     constructor(
@@ -12,7 +12,8 @@ export class ReduxMenuItem {
         public y: number,
         public width: number = 200,
         public height: number = 30,
-        config?: ReduxMenuItemConfig
+        config?: ReduxMenuItemConfig,
+
 
     ) {
         if (config?.action) {
@@ -29,6 +30,15 @@ export class ReduxMenuItem {
     hasSubmenu(): boolean {
         return this.submenu !== null;
     }
+
+    setSubmenu(submenu: ReduxMenu) {
+        this.submenu = submenu;
+    }
+
+    getSubmenu(): ReduxMenu | null {
+        return this.submenu;
+    }
+
 
     isHovered(pointerX: number, pointerY: number): boolean {
         return pointerX >= this.x && 

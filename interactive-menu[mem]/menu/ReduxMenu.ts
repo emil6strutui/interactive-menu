@@ -1,9 +1,8 @@
 import { DrawEvent, Font, KeyCode, Align } from "../.config/sa.enums.js";
 import { ReduxMenuItem } from "./ReduxMenuItem";
-import { ReduxMenuConfig, ReduxMenuItemConfig } from "./ReduxMenuTypes.js";
+import { ReduxMenuConfig, ReduxMenuItemConfig } from "./ReduxMenuTypes";
+import { MenuRenderStack } from "./ReduxMenuRenderStack.js";
 import { ReduxMenuPointer } from "./ReduxMenuPointer";
-import { setTimeout } from "../utils/setTimeout";
-
 
 export class ReduxMenu {
     private items: ReduxMenuItem[] = [];
@@ -13,38 +12,34 @@ export class ReduxMenu {
     private totalPages: number = 0;
     private lastClickTime: number = 0;
     private clickCooldown: number = 50;
-    private activeSubmenu: ReduxMenu | null = null;
-    private parentMenu: ReduxMenu | null = null;
     private title: string;
     private x: number;
     private y: number;
     private width: number = 200;
     private height: number = 30;
-    private pointerX: number;
-    private pointerY: number;
-    private pointer: ReduxMenuPointer;
-    private isVisible: boolean = false;
     private readonly CLOSE_BUTTON_SIZE = 20;
     private readonly CLOSE_BUTTON_PADDING = 10;
     private onCloseCallback: (() => void) | null = null;
+    private renderStack: MenuRenderStack;
 
-
-    constructor(menuItems: ReduxMenuItemConfig[], config?: ReduxMenuConfig, parentMenu: ReduxMenu | null = null) {
+    constructor(menuItems: ReduxMenuItemConfig[], renderStack: MenuRenderStack, config?: ReduxMenuConfig, isSubmenu: boolean = false) {
+        this.renderStack = renderStack;
         this.x = config?.x ?? 220;
         this.y = config?.y ?? 150;
         this.itemsPerPage = config?.itemsPerPage ?? 3;
         this.title = config?.title ?? "Main Menu";
         this.width = config?.width ?? 200;
         this.height = config?.height ?? 30;
-        this.parentMenu = parentMenu;
     
         let configItems = menuItems;
         
-        if (parentMenu) {
+        // Only add back button if this is a submenu
+        if (isSubmenu) {
             configItems = [
                 { text: "< Back", action: () => this.navigateBack() },
                 ...configItems
             ];
+
         }
 
         this.totalPages = Math.ceil(configItems.length / this.itemsPerPage);
@@ -60,55 +55,34 @@ export class ReduxMenu {
             );
             
             if (item.submenu) {
-                menuItem.submenu = new ReduxMenu(item.submenu, {
+                const submenu = new ReduxMenu(item.submenu, this.renderStack, {
                     x: this.x,
                     y: this.y,
                     width: this.width,
                     height: this.height,
                     itemsPerPage: this.itemsPerPage,
                     title: item.text
-                }, this);
+                }, true);
+                menuItem.setSubmenu(submenu);
             }
             
             this.items.push(menuItem);
         });
-
-        this.pointer = new ReduxMenuPointer();
     }
 
-    private navigateBack() {
-        wait(10);
-        if (this.parentMenu) {
-            this.parentMenu.activeSubmenu = null;
-        }
+    navigateToSubmenu(submenu: ReduxMenu) {
+        this.renderStack.push(submenu);
+    }
+
+    navigateBack() {
+        this.renderStack.pop();
     }
 
     update(pointerX: number, pointerY: number) {
-        if (this.activeSubmenu) {
-            this.activeSubmenu.update(pointerX, pointerY);
-            return;
-        }
-
-        this.pointerX = pointerX;
-        this.pointerY = pointerY;
-
-        
         this.selectedIndex = -1;
         const startIdx = this.currentPage * this.itemsPerPage;
         const endIdx = Math.min(startIdx + this.itemsPerPage, this.items.length);
 
-        if (!this.activeSubmenu) {
-            if (Pad.IsKeyJustPressed(KeyCode.Left) && this.currentPage > 0) {
-                this.currentPage--;
-                this.updateItemPositions();
-            }
-            if (Pad.IsKeyJustPressed(KeyCode.Right) && this.currentPage < this.totalPages - 1) {
-                this.currentPage++;
-                this.updateItemPositions();
-            }
-        }
-
-        // Check hover states only for visible items
         for (let i = startIdx; i < endIdx; i++) {
             if (this.items[i].isHovered(pointerX, pointerY)) {
                 this.selectedIndex = i;
@@ -117,7 +91,6 @@ export class ReduxMenu {
                 }
             }
         }
-
     }
 
     private updateItemPositions() {
@@ -162,24 +135,24 @@ export class ReduxMenu {
         };
     }
 
-    private drawCloseButton() {
+    private drawCloseButton(pointerX: float, pointerY: float) {
         const menuHeight = this.calculateMenuHeight();
         const { x: menuX, y: menuY } = this.getBoundedMenuPosition(menuHeight);
         
         const closeX = menuX + (this.width / 2) - this.CLOSE_BUTTON_PADDING;
         const closeY = menuY - (menuHeight / 2) + this.CLOSE_BUTTON_PADDING;
         
-        // Check for hover and click
+        // Check for hover on the close button
         const isCloseHovered = this.isPointInRect(
-            this.pointerX,
-            this.pointerY,
-            closeX,
-            closeY,
+            pointerX,
+            pointerY,
+            closeX + 5,
+            closeY + 8,
             this.CLOSE_BUTTON_SIZE,
             this.CLOSE_BUTTON_SIZE
+
         );
 
-        
         Txd.DrawTexturePlus(
             0,
             DrawEvent.BeforeHud,
@@ -197,8 +170,6 @@ export class ReduxMenu {
             0,
             isCloseHovered ? 255 : 180
         );
-
-
         
         Txd.DrawTexturePlus(
             0,
@@ -245,20 +216,14 @@ export class ReduxMenu {
         }
     }
 
-    draw() {
-        if (this.activeSubmenu) {
-            this.activeSubmenu.draw();
-            return;
-        }
-        
+    draw(pointerX: float, pointerY: float) {
         const menuHeight = this.calculateMenuHeight();
         const menuWidth = 250;
         const { x: menuX, y: menuY } = this.getBoundedMenuPosition(menuHeight);
         
         // Draw menu background
         Txd.DrawTexturePlus(0, DrawEvent.BeforeDrawing, menuX, menuY, menuWidth, menuHeight, 0.0, 0.0, false, 0, 0, 100, 149, 237, 100);
-
-
+        // Draw title
         Text.DrawString(this.title, DrawEvent.BeforeHud, menuX - 100, menuY - menuHeight / 2 + 20, 0.7, 1.6, true, Font.Subtitles);
         
         // Update item positions based on bounded menu position
@@ -272,18 +237,14 @@ export class ReduxMenu {
         }
 
         if (this.totalPages > 1) {
-            this.drawPagination(menuY + menuHeight/2 - 30);
+            this.drawPagination(menuY + menuHeight/2 - 30, pointerX, pointerY);
         }
 
-        this.drawCloseButton();
+        this.drawCloseButton(pointerX, pointerY);
 
     }
 
-    private drawPagination(paginationY: number) {
-        if (this.activeSubmenu) {
-            return;
-        }
-
+    private drawPagination(paginationY: number, pointerX: float, pointerY: float) {
         const prevX = this.x - 130;
         const nextX = this.x + 60;
         const centerX = this.x - 25;
@@ -294,7 +255,15 @@ export class ReduxMenu {
         const canClick = currentTime - this.lastClickTime >= this.clickCooldown;
 
         if (this.currentPage > 0) {
-            const isPrevHovered = this.isPointInRect(this.pointerX, this.pointerY, prevX + 10, paginationY + 5, 60, 20);
+            const isPrevHovered = this.isPointInRect(
+                pointerX, 
+                pointerY, 
+                prevX + 10, 
+                paginationY + 5, 
+                60, 
+                20
+            );
+
             Text.DrawStringExt(
                 "< Prev", // Text
                 DrawEvent.BeforeHud, // DrawEvent
@@ -334,7 +303,15 @@ export class ReduxMenu {
         }
 
         if (this.currentPage < this.totalPages - 1) {
-            const isNextHovered = this.isPointInRect(this.pointerX, this.pointerY, nextX + 10, paginationY + 5, 60, 20);
+            const isNextHovered = this.isPointInRect(
+                pointerX, 
+                pointerY, 
+                nextX + 10,
+                 paginationY + 5, 
+                 60, 
+
+                 20
+                );
             Text.DrawStringExt(
                 "Next >", // Text
                 DrawEvent.BeforeHud, // DrawEvent
@@ -392,15 +369,9 @@ export class ReduxMenu {
 
         if (item.hasSubmenu()) {
             // Store reference to the submenu
-            const submenu = item.submenu;
+            const submenu = item.getSubmenu();
             
-            if (this.activeSubmenu) {
-                this.activeSubmenu = null;
-            }
-            
-            this.activeSubmenu = submenu;
-            this.activeSubmenu.pointerX = this.pointerX;
-            this.activeSubmenu.pointerY = this.pointerY;
+            this.navigateToSubmenu(submenu);
             return;
         } else {
             item.execute();
@@ -408,53 +379,41 @@ export class ReduxMenu {
     }
 
     display() {
-        let rootMenu: ReduxMenu = this;
-        while (rootMenu.parentMenu) {
-            rootMenu = rootMenu.parentMenu;
-        }
-
-        if (!rootMenu.isVisible) {
-            rootMenu.isVisible = true;
-        }
+        this.renderStack.push(this);
     }
 
     hide() {
-        if (this.getIsVisible()) {
-            let rootMenu: ReduxMenu = this;
-            while (rootMenu.parentMenu) {
-                rootMenu = rootMenu.parentMenu;
-            }
-            
-            rootMenu.activeSubmenu = null;
-            rootMenu.isVisible = false;
-            
+        // Get the root menu (which may contain the onCloseCallback).
+        // Note: do this before clearing the stack!
+        const rootMenu = this.renderStack.getRoot();
+        this.renderStack.clear();
+        if (rootMenu && rootMenu.onCloseCallback) {
             wait(100);
-            rootMenu.onCloseCallback?.();
+            rootMenu.onCloseCallback();
         }
     }
 
-    process() {
-        if (!this.getIsVisible()) return;
+    process(pointer: ReduxMenuPointer) {
+        if (this.renderStack.isEmpty()) return;
 
         Text.UseCommands(true);
-        const pointerPos = this.pointer.getPosition();
-        this.pointer.update();
-        this.update(pointerPos.x, pointerPos.y);
-        this.pointer.draw();
-        this.draw();
+        const currentMenu = this.renderStack.peek() || this;
+        const pointerPos = pointer.getPosition();
+        pointer.update();
+        currentMenu.update(pointerPos.x, pointerPos.y);
+        pointer.draw();
+        currentMenu.draw(pointerPos.x, pointerPos.y);
         Text.UseCommands(false);
+
+
     }
 
     getIsVisible(): boolean {
-        // If this is a submenu, check the root menu's visibility
-        let rootMenu: ReduxMenu = this;
-        while (rootMenu.parentMenu) {
-            rootMenu = rootMenu.parentMenu;
-        }
-        return rootMenu.isVisible;
+        return !this.renderStack.isEmpty();
     }
 
     onClose(callback: () => void) {
         this.onCloseCallback = callback;
     }
+
 }
