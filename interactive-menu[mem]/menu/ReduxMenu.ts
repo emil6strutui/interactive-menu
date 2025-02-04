@@ -1,8 +1,10 @@
 import { DrawEvent, Font, KeyCode, Align } from "../.config/sa.enums.js";
 import { ReduxMenuItem } from "./ReduxMenuItem";
 import { ReduxMenuConfig, ReduxMenuItemConfig } from "./ReduxMenuTypes";
-import { MenuRenderStack } from "./ReduxMenuRenderStack.js";
+import { MenuRenderStack } from "./ReduxMenuRenderStack";
 import { ReduxMenuPointer } from "./ReduxMenuPointer";
+import { SliderReduxMenuItem } from "./SliderReduxMenuItem";
+import { SliderReduxMenuItemConfig } from "./SliderReduxMenuItem";
 
 export class ReduxMenu {
     // Class-level constants to replace magic numbers:
@@ -63,31 +65,50 @@ export class ReduxMenu {
         }
 
         // Create all ReduxMenuItems.
-        configItems.forEach((item, index) => {
-            const menuItem = new ReduxMenuItem(
+        configItems.forEach((item: ReduxMenuItemConfig, index: number) => {
+            let menuItem;
+            
+            if (
+              "min" in item &&
+              "max" in item &&
+              "step" in item &&
+              "initial" in item
+            ) {
+              menuItem = new SliderReduxMenuItem(
+                item.text,
+                this.x - 100,
+                this.y + (index % this.itemsPerPage) * ReduxMenu.ITEM_HEIGHT,
+                this.width,
+                this.height,
+                item as SliderReduxMenuItemConfig
+              );
+            } else {
+              menuItem = new ReduxMenuItem(
                 item.text,
                 this.x - 100,
                 this.y + (index % this.itemsPerPage) * ReduxMenu.ITEM_HEIGHT,
                 this.width,
                 this.height,
                 item
-            );
-
-            if (item.submenu) {
-                const submenu = new ReduxMenu(item.submenu, this.renderStack, {
-                    x: this.x,
-                    y: this.y,
-                    width: this.width,
-                    height: this.height,
-                    itemsPerPage: this.itemsPerPage,
-                    scrollBar: this.scrollMode,
-                    title: item.text,
-                }, true);
-                menuItem.setSubmenu(submenu);
+              );
             }
-
+          
+            // Set up submenu if provided.
+            if (item.submenu) {
+              const submenu = new ReduxMenu(item.submenu, this.renderStack, {
+                x: this.x,
+                y: this.y,
+                width: this.width,
+                height: this.height,
+                itemsPerPage: this.itemsPerPage,
+                scrollBar: this.scrollMode,
+                title: item.text,
+              }, true);
+              menuItem.setSubmenu(submenu);
+            }
+          
             this.items.push(menuItem);
-        });
+          });
 
         
     
@@ -131,6 +152,9 @@ export class ReduxMenu {
                 if (Pad.IsKeyJustPressed(KeyCode.LeftButton)) {
                     this.handleMenuClick(i);
                 }
+            }
+            if (this.items[i] instanceof SliderReduxMenuItem) {
+                (this.items[i] as SliderReduxMenuItem).update(pointerX, i === this.selectedIndex);
             }
         }
         // When in scroll mode, update the scrolling based on mouse wheel.
@@ -247,7 +271,7 @@ export class ReduxMenu {
         // Draw menu background
         Txd.DrawTexturePlus(
             0, 
-            DrawEvent.AfterHud, 
+            DrawEvent.BeforeHud, 
             menuX, menuY + 8, 
             ReduxMenu.MENU_WIDTH, menuHeight, 
             0.0, 
@@ -256,7 +280,7 @@ export class ReduxMenu {
             0, 0, 
             100, 149, 237, 100);
         // Draw title
-        Text.DrawString(this.title, DrawEvent.AfterHud, menuX - 100, menuY - menuHeight / 2 + 20, 0.7, 1.6, true, Font.Subtitles);
+        Text.DrawString(this.title, DrawEvent.BeforeHud, menuX - 100, menuY - menuHeight / 2 + 20, 0.7, 1.6, true, Font.Subtitles);
         
         // Update item positions based on bounded menu position
         const startIdx = this.scrollMode ? this.currentPage : this.currentPage * this.itemsPerPage;
@@ -264,14 +288,10 @@ export class ReduxMenu {
         
         for (let i = startIdx; i < endIdx; i++) {
             const relativeIndex = i - startIdx;
-            this.items[i].y = menuY - menuHeight / 2 + ReduxMenu.ITEM_TOP_OFFSET
-                + (relativeIndex * ReduxMenu.ITEM_HEIGHT);
+            this.items[i].y = menuY - menuHeight / 2 + ReduxMenu.ITEM_TOP_OFFSET + (relativeIndex * ReduxMenu.ITEM_HEIGHT);
             this.items[i].draw(i === this.selectedIndex);
         }
-        
 
-        // If the per page items are more than 5, draw the scroll bar;
-        // otherwise draw the pagination arrows (if applicable)
         if (this.scrollMode && this.totalPages > 1) {
             this.drawScrollBar(pointerX, pointerY);
         } else if (this.totalPages > 1) {
@@ -288,7 +308,7 @@ export class ReduxMenu {
         
         Text.DrawString(
             `Page ${this.currentPage + 1}/${this.totalPages}`, 
-            DrawEvent.AfterHud, 
+            DrawEvent.BeforeHud, 
             centerX, paginationY + 2, 
             0.4, 0.8, 
             true, 
@@ -309,7 +329,7 @@ export class ReduxMenu {
 
             Text.DrawStringExt(
                 "< Prev", // Text
-                DrawEvent.AfterHud, // DrawEvent
+                DrawEvent.BeforeHud, // DrawEvent
                 prevX + 10, // X
                 paginationY, // Y
                 0.5, // SizeX
@@ -356,7 +376,7 @@ export class ReduxMenu {
                 );
             Text.DrawStringExt(
                 "Next >", // Text
-                DrawEvent.AfterHud, // DrawEvent
+                DrawEvent.BeforeHud, // DrawEvent
                 nextX + 10, // X
                 paginationY, // Y
                 0.5, // SizeX
@@ -503,14 +523,12 @@ export class ReduxMenu {
 
     process(pointer: ReduxMenuPointer) {
         if (this.renderStack.isEmpty()) return;
-        Text.UseCommands(true);
         const currentMenu = this.renderStack.peek() || this;
-        const pointerPos = pointer.getPosition();
         pointer.update();
+        const pointerPos = pointer.getPosition();
         currentMenu.update(pointerPos.x, pointerPos.y);
-        pointer.draw();
         currentMenu.draw(pointerPos.x, pointerPos.y);
-        Text.UseCommands(false);
+        pointer.draw();
     }
 
     getIsVisible(): boolean {

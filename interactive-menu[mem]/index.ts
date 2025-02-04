@@ -1,16 +1,35 @@
 import { KeyCode, WeaponType } from "./.config/sa.enums.js";
 import { MenuSystem } from "./menu/ReduxMenuSystem";
 import { WeaponModel } from "./utils/enums";
+import { SliderReduxMenuItemConfig } from "./menu/SliderReduxMenuItem";
 
 const player = new Player(0);
 
-const mainMenuSystem = new MenuSystem([
-    { 
-        text: "Give 50$ To Playerasdasdasdasdada",
-        action: () => {
-            player.addScore(50);
-        }
+// Create a slider configuration object.
+const ammoSlider: SliderReduxMenuItemConfig = {
+    text: "Give Ammo",
+    min: 0,
+    max: 200,
+    step: 10,
+    initial: 100,
+    sliderAction: (value: float) => {
+        Streaming.RequestModel(WeaponModel.AK47);
+        Streaming.LoadAllModelsNow();
+        player.getChar().giveWeapon(WeaponType.Ak47, value);
+        Streaming.MarkModelAsNoLongerNeeded(WeaponModel.AK47);
+    }
+};
+
+const regularItem = {
+    text: "Add Score",
+    action: () => {
+        player.addScore(50);
     },
+};
+
+const mainMenuSystem = new MenuSystem([
+    // ammoSlider,
+    regularItem,
     { 
         text: "Weapons menu",
         submenu: [
@@ -230,7 +249,7 @@ const mainMenuSystem = new MenuSystem([
     x: 300,
     y: 200,
     itemsPerPage: 7,
-    scrollBar: true,
+    scrollBar: false,
     title: "Main Menu",
 });
 

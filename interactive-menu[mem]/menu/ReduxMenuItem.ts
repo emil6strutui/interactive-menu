@@ -49,14 +49,12 @@ export class ReduxMenuItem {
 
     draw(isHovered: boolean) {
 
-        Txd.DrawTexturePlus(0, DrawEvent.AfterHud, this.x + this.width / 2, this.y + this.height / 2, this.width, this.height, 0.0, 0.0, false, 0, 0, 0, 0, 0, isHovered ? 180 : 120);
-
+        Txd.DrawTexturePlus(0, DrawEvent.BeforeHud, this.x + this.width / 2, this.y + this.height / 2, this.width, this.height, 0.0, 0.0, false, 0, 0, 0, 0, 0, isHovered ? 180 : 120);
         
         const displayText = this.getDisplayText();
         const textLength = displayText.length;
         const scale = Math.max(0.4, Math.min(0.6, 1.2 - (textLength * 0.05)));
         
-        Text.SetColor(255, 255, 255, isHovered ? 255 : 230);
         const sizeX = scale * 1;
         const sizeY = scale * 2;
         
@@ -65,7 +63,7 @@ export class ReduxMenuItem {
         const baseOffset = 2;
         const verticalOffset = baseOffset + (this.height - (this.height * scaleFactor)) / 2;
         
-        Text.DrawString(displayText, DrawEvent.AfterHud, this.x + 10, this.y + verticalOffset, sizeX, sizeY, true, Font.Subtitles);
+        Text.DrawString(displayText, DrawEvent.BeforeHud, this.x + 10, this.y + verticalOffset, sizeX, sizeY, true, Font.Subtitles);
         
     }
 
