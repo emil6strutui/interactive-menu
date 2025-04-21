@@ -1,10 +1,13 @@
 import { DrawEvent, Font, KeyCode, Align } from "../.config/sa.enums.js";
-import { ReduxMenuItem } from "./ReduxMenuItem";
-import { ReduxMenuConfig, ReduxMenuItemConfig } from "./ReduxMenuTypes";
+import { ReduxMenuConfig} from "./items/types/ReduxMenuItemTypes";
 import { MenuRenderStack } from "./ReduxMenuRenderStack";
 import { ReduxMenuPointer } from "./ReduxMenuPointer";
-import { SliderReduxMenuItem } from "./SliderReduxMenuItem";
-import { SliderReduxMenuItemConfig } from "./SliderReduxMenuItem";
+import { AbstractReduxMenuItem } from "./items/base/AbstractReduxMenuItem";
+import { BaseReduxMenuItemConfig } from "./items/configs/base/BaseReduxMenuItemConfig";
+import { ReduxSliderMenuItem } from "./items/ReduxSliderMenuItem";
+import { ReduxSubmenuItem } from "./items/ReduxSubmenuItem";
+import { ReduxSubmenuItemConfig } from "./items/configs/ReduxSubmenuItemConfig";
+import { ReduxSimpleMenuItemConfig } from "./items/configs/ReduxSimpleMenuItemConfig";
 
 export class ReduxMenu {
     // Class-level constants to replace magic numbers:
@@ -21,7 +24,7 @@ export class ReduxMenu {
     private static readonly TRACK_TOP_OFFSET = 40;
     private static readonly TRACK_WIDTH = 10;
   
-    private items: ReduxMenuItem[] = [];
+    private items: AbstractReduxMenuItem[] = [];
     private selectedIndex: number = -1;
     private currentPage: number = 0;
     private itemsPerPage: number = 3;
@@ -40,7 +43,7 @@ export class ReduxMenu {
     private scrollMode: boolean = false;
 
     constructor(
-        menuItems: ReduxMenuItemConfig[],
+        menuItems: BaseReduxMenuItemConfig<AbstractReduxMenuItem>[],
         renderStack: MenuRenderStack,
         config?: ReduxMenuConfig,
         isSubmenu: boolean = false
@@ -59,54 +62,25 @@ export class ReduxMenu {
         // Add a back button for submenus.
         if (isSubmenu) {
             configItems = [
-                { text: "< Back", action: () => this.navigateBack() },
+                new ReduxSimpleMenuItemConfig(
+                    "< Back",
+                    () => this.navigateBack()
+                ),
                 ...configItems
-            ];
+            ] as BaseReduxMenuItemConfig<AbstractReduxMenuItem>[];
         }
 
         // Create all ReduxMenuItems.
-        configItems.forEach((item: ReduxMenuItemConfig, index: number) => {
+        configItems.forEach((item: BaseReduxMenuItemConfig<AbstractReduxMenuItem>, index: number) => {
             let menuItem;
+
+            item.x = this.x - 100;
+            item.y = this.y + (index % this.itemsPerPage) * (item.height ?? ReduxMenu.ITEM_HEIGHT) 
+            if (item instanceof ReduxSubmenuItemConfig) {
+                item.renderStack = this.renderStack;
+            }
             
-            if (
-              "min" in item &&
-              "max" in item &&
-              "step" in item &&
-              "initial" in item
-            ) {
-              menuItem = new SliderReduxMenuItem(
-                item.text,
-                this.x - 100,
-                this.y + (index % this.itemsPerPage) * ReduxMenu.ITEM_HEIGHT,
-                this.width,
-                this.height,
-                item as SliderReduxMenuItemConfig
-              );
-            } else {
-              menuItem = new ReduxMenuItem(
-                item.text,
-                this.x - 100,
-                this.y + (index % this.itemsPerPage) * ReduxMenu.ITEM_HEIGHT,
-                this.width,
-                this.height,
-                item
-              );
-            }
-          
-            // Set up submenu if provided.
-            if (item.submenu) {
-              const submenu = new ReduxMenu(item.submenu, this.renderStack, {
-                x: this.x,
-                y: this.y,
-                width: this.width,
-                height: this.height,
-                itemsPerPage: this.itemsPerPage,
-                scrollBar: this.scrollMode,
-                title: item.text,
-              }, true);
-              menuItem.setSubmenu(submenu);
-            }
-          
+            menuItem = item.create();
             this.items.push(menuItem);
           });
 
@@ -153,8 +127,8 @@ export class ReduxMenu {
                     this.handleMenuClick(i);
                 }
             }
-            if (this.items[i] instanceof SliderReduxMenuItem) {
-                (this.items[i] as SliderReduxMenuItem).update(pointerX, i === this.selectedIndex);
+            if (this.items[i] instanceof ReduxSliderMenuItem) {
+                (this.items[i] as ReduxSliderMenuItem).update(pointerX, i === this.selectedIndex);
             }
         }
         // When in scroll mode, update the scrolling based on mouse wheel.
@@ -500,7 +474,7 @@ export class ReduxMenu {
             return;
         }
         this.lastClickTime = currentTime;
-        if (item.hasSubmenu()) {
+        if (item instanceof ReduxSubmenuItem) {
             const submenu = item.getSubmenu();
             this.navigateToSubmenu(submenu);
         } else {

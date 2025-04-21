@@ -1,30 +1,22 @@
-import { ReduxMenuAction, ReduxMenuItemConfig } from "./ReduxMenuTypes";
-import { ReduxMenu } from "./ReduxMenu";
-import { DrawEvent, Font } from "../.config/sa.enums.js";
+import { ReduxMenu } from "../ReduxMenu";
+import { DrawEvent, Font } from "../../.config/sa.enums.js";
+import { AbstractReduxMenuItem } from "./base/AbstractReduxMenuItem";
 
-export class ReduxMenuItem {
+export class ReduxSubmenuItem extends AbstractReduxMenuItem {
     private submenu: ReduxMenu | null = null;
-    private action: ReduxMenuAction | null = null;
 
     constructor(
-        public text: string,
-        public x: number,
-        public y: number,
-        public width: number = 200,
-        public height: number = 30,
-        config?: ReduxMenuItemConfig,
-
-
+        text: string,
+        x: number,
+        y: number,
+        width: number,
+        height: number,
     ) {
-        if (config?.action) {
-            this.action = config.action;
-        }
+        super(text, x, y, width, height);
     }
 
     execute() {
-        if (this.action) {
-            this.action();
-        }
+        //Do nothing
     }
 
     hasSubmenu(): boolean {
@@ -37,14 +29,6 @@ export class ReduxMenuItem {
 
     getSubmenu(): ReduxMenu | null {
         return this.submenu;
-    }
-
-
-    isHovered(pointerX: number, pointerY: number): boolean {
-        return pointerX >= this.x && 
-               pointerX <= this.x + this.width + 8 && 
-               pointerY >= this.y && 
-               pointerY <= this.y + this.height + 7;
     }
 
     draw(isHovered: boolean) {
@@ -75,6 +59,8 @@ export class ReduxMenuItem {
             finalText = this.text.substring(0, maxLength - 3) + "...";
         }
         
-        return this.hasSubmenu() ? `${finalText} >` : finalText;
+        return `${finalText} >`;
     }
+    
+
 }

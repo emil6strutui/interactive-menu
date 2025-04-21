@@ -1,11 +1,3 @@
-export type ReduxMenuAction = () => void;
-
-export interface ReduxMenuItemConfig {
-    text: string;
-    action?: ReduxMenuAction;
-    submenu?: ReduxMenuItemConfig[];
-}
-
 export interface ReduxMenuConfig {
     x?: number;
     y?: number;
@@ -15,3 +7,5 @@ export interface ReduxMenuConfig {
     width?: number;
     height?: number;
 }
+
+export type SliderReduxMenuItemAction = (value: number) => void;
