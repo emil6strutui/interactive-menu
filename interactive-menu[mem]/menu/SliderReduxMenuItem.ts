@@ -25,8 +25,18 @@ export class SliderReduxMenuItem extends ReduxMenuItem {
   public value: number;
   private sliderAction?: SliderReduxMenuAction;
   private isDragging: boolean = false;
+  private isSliderHovered: boolean = false;
   private lastExecuteTime: number = 0;
   private readonly DRAGGING_INTERVAL: number = 500; // 100ms interval
+  
+  // Confirm button properties
+  private confirmButtonWidth: number = 15;
+  private confirmButtonHeight: number = 15;
+  private confirmButtonX: number;
+  private confirmButtonHovered: boolean = false;
+  private pendingValue: number;
+  private lastConfirmButtonClickTime: number = 0;
+  private readonly CONFIRM_BUTTON_COOLDOWN: number = 100; // 500ms cooldown
 
   constructor(
     text: string,
@@ -42,26 +52,46 @@ export class SliderReduxMenuItem extends ReduxMenuItem {
     this.max = config.max;
     this.step = config.step;
     this.value = config.initial;
+    this.pendingValue = config.initial;
     this.sliderAction = config.sliderAction;
+    
+    // Position the confirm button to the right of the slider
+    this.confirmButtonX = this.x + this.width + 12;
   }
 
-  // Override execute so that when the slider "commits" its value,
-  // it calls the sliderAction with the current value.
+  // Override execute to apply the pending value when the confirm button is pressed
   execute() {
-    if (this.sliderAction) {
-      this.sliderAction(this.value);
+    if (this.sliderAction && this.confirmButtonHovered && this.pendingValue !== 0) {
+      const currentTime = Date.now();
+      if(currentTime - this.lastConfirmButtonClickTime >= this.CONFIRM_BUTTON_COOLDOWN) {
+        this.value = this.pendingValue;
+        this.sliderAction(this.value);
+        this.lastConfirmButtonClickTime = currentTime;
+      }
     }
   }
 
-  // Override isHovered to include the slider track area
   isHovered(pointerX: number, pointerY: number): boolean {
     const trackY = this.y + this.height - 10;
-    return (
+    this.isSliderHovered = (
       pointerX >= this.x && 
       pointerX <= this.x + this.width + 8 && 
       pointerY >= this.y && 
       pointerY <= trackY + 14 // Extended to include slider track
     );
+ 
+
+    this.confirmButtonHovered = (
+      pointerX >= this.confirmButtonX && 
+      pointerX <= this.confirmButtonX + this.confirmButtonWidth && 
+      pointerY >= this.y && 
+      pointerY <= this.y + this.height
+    );
+
+    log('isSliderHovered', this.isSliderHovered);
+    log('isConfirmButtonHovered', this.confirmButtonHovered);
+
+    return this.confirmButtonHovered || this.isSliderHovered;
   }
 
   // Handle slider interaction when selected
@@ -84,6 +114,13 @@ export class SliderReduxMenuItem extends ReduxMenuItem {
 
     if (Pad.IsKeyPressed(KeyCode.LeftButton)) {
         const currentTime = Date.now();
+        
+        // Check if confirm button is clicked
+        if (this.confirmButtonHovered) {
+            this.execute();
+            return;
+        }
+        
         this.isDragging = true;
 
         if (currentTime - this.lastExecuteTime >= this.DRAGGING_INTERVAL) {
@@ -94,12 +131,9 @@ export class SliderReduxMenuItem extends ReduxMenuItem {
             const steps = Math.round((newValue - this.min) / this.step);
             const newSteppedValue = Math.min(this.max, Math.max(this.min, this.min + steps * this.step));
             
-            if (this.value !== newSteppedValue) {
-                this.value = newSteppedValue;
+            if (this.pendingValue !== newSteppedValue) {
+                this.pendingValue = newSteppedValue;
             }
-        } else {
-            this.execute();
-            this.lastExecuteTime = Date.now();
         }
     }
   }
@@ -107,12 +141,12 @@ export class SliderReduxMenuItem extends ReduxMenuItem {
   // Update the slider's value by a delta (multiplied by step)
   // This could be called on pointer or key events.
   updateValue(delta: number): void {
-    const newValue = this.value + delta * this.step;
+    const newValue = this.pendingValue + delta * this.step;
     // Clamp the value between min and max.
-    this.value = Math.min(this.max, Math.max(this.min, newValue));
+    this.pendingValue = Math.min(this.max, Math.max(this.min, newValue));
   }
 
-  // Override draw to display the slider value.
+  // Override draw to display the slider value and confirm button
   draw(isHovered: boolean): void {
     // Draw the background
     Txd.DrawTexturePlus(
@@ -130,14 +164,14 @@ export class SliderReduxMenuItem extends ReduxMenuItem {
         0,
         0,
         0,
-        isHovered ? 180 : 120
+        isHovered && this.isSliderHovered ? 180 : 120
     );
 
     // Draw the text with value
-    const displayText = `${this.text}: ${this.value.toFixed(0)}`;
+    const displayText = `${this.text}: ${this.pendingValue.toFixed(0)}`;
     const textLength = displayText.length;
     const scale = Math.max(0.4, Math.min(0.6, 1.2 - textLength * 0.05));
-    Text.SetColor(255, 255, 255, isHovered ? 255 : 230);
+    Text.SetColor(255, 255, 255, isHovered && this.isSliderHovered ? 255 : 230);
     const sizeX = scale * 1;
     const sizeY = scale * 2;
     const maxYScale = 2 * 0.7;
@@ -182,7 +216,7 @@ export class SliderReduxMenuItem extends ReduxMenuItem {
     );
 
     // Draw handle
-    const valueRatio = (this.value - this.min) / (this.max - this.min);
+    const valueRatio = (this.pendingValue - this.min) / (this.max - this.min);
     const handleX = trackX + valueRatio * trackWidth;
     const handleWidth = 10;
     const handleHeight = 14;
@@ -202,7 +236,40 @@ export class SliderReduxMenuItem extends ReduxMenuItem {
         255,
         255,
         255,
-        isHovered ? 255 : 200
+        isHovered && this.isSliderHovered ? 255 : 200
+    );
+    
+    // Draw confirm button
+    const buttonColor = this.confirmButtonHovered ? 160 : 80;
+    Txd.DrawTexturePlus(
+        0,
+        DrawEvent.BeforeHud,
+        this.confirmButtonX,
+        this.y + this.height / 2,
+        this.confirmButtonWidth,
+        this.confirmButtonHeight,
+        0.0,
+        0.0,
+        false,
+        0,
+        0,
+        0,
+        100,
+        0,
+        buttonColor
+    );
+    
+    // Draw checkmark icon instead of text
+    Text.SetColor(255, 255, 255, 255);
+    Text.DrawString(
+        "+",
+        DrawEvent.BeforeHud,
+        this.confirmButtonX - this.confirmButtonWidth / 3,
+        this.y + 6,
+        0.5,
+        1.0,
+        true,
+        Font.Subtitles
     );
   }
 }

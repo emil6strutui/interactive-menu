@@ -3,19 +3,26 @@ import { ReduxMenuPointer } from "./ReduxMenuPointer";
 import { MenuRenderStack } from "./ReduxMenuRenderStack";
 import { ReduxMenuItemConfig, ReduxMenuConfig } from "./ReduxMenuTypes";
 
-export class MenuSystem {
-    private static pointer: ReduxMenuPointer = new ReduxMenuPointer();
+export class ReduxMenuSystem {
+    private static pointer: ReduxMenuPointer;
     private menu: ReduxMenu;
 
     public constructor(menuItems: ReduxMenuItemConfig[], config: ReduxMenuConfig) {
         this.menu = new ReduxMenu(menuItems, new MenuRenderStack(), config);
     }
 
+
+
     static getPointer(): ReduxMenuPointer {
-        return MenuSystem.pointer;
+        if(!this.pointer) {
+            this.pointer = new ReduxMenuPointer();
+        }
+        return this.pointer;
     }
+
 
     getMenu(): ReduxMenu {
         return this.menu;
     }
+
 }

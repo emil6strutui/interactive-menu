@@ -1,5 +1,5 @@
 import { KeyCode, WeaponType } from "./.config/sa.enums.js";
-import { MenuSystem } from "./menu/ReduxMenuSystem";
+import { ReduxMenuSystem } from "./menu/ReduxMenuSystem";
 import { WeaponModel } from "./utils/enums";
 import { SliderReduxMenuItemConfig } from "./menu/SliderReduxMenuItem";
 
@@ -27,8 +27,8 @@ const regularItem = {
     },
 };
 
-const mainMenuSystem = new MenuSystem([
-    // ammoSlider,
+const mainMenuSystem = new ReduxMenuSystem([
+    ammoSlider,
     regularItem,
     { 
         text: "Weapons menu",
@@ -251,11 +251,8 @@ const mainMenuSystem = new MenuSystem([
     itemsPerPage: 7,
     scrollBar: false,
     title: "Main Menu",
-});
-
-
-
-// const mainMenuSystem2 = new MenuSystem(new ReduxMenu([
+},
+);
 //     { 
 //         text: "Give 50$ To Playerasdasdasdasdada",
 //         action: () => {
@@ -390,17 +387,10 @@ while (true) {
         } else {
             mainMenuSystem.getMenu().hide();
         }
-
-        // if(!mainMenuSystem2.getMenu().getIsVisible()) {
-        //     mainMenuSystem2.getMenu().display();
-        //     player.setControl(false);
-        // } else {
-        //     mainMenuSystem2.getMenu().hide();
-        // }
     }
 
-    mainMenuSystem.getMenu().process(MenuSystem.getPointer());
-    // mainMenuSystem2.getMenu().process(MenuSystem.getPointer());
+    mainMenuSystem.getMenu().process(ReduxMenuSystem.getPointer());
+
 
 }
 

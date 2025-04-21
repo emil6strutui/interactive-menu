@@ -527,8 +527,8 @@ export class ReduxMenu {
         pointer.update();
         const pointerPos = pointer.getPosition();
         currentMenu.update(pointerPos.x, pointerPos.y);
-        currentMenu.draw(pointerPos.x, pointerPos.y);
         pointer.draw();
+        currentMenu.draw(pointerPos.x, pointerPos.y);
     }
 
     getIsVisible(): boolean {
